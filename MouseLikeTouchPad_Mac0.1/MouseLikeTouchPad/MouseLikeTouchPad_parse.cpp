@@ -40,7 +40,6 @@ static BOOLEAN Mouse_MButton_Enabled; //鼠标中键功能开启标志
 
 static LARGE_INTEGER MousePointer_DefineTime;//鼠标指针定义时间，用于计算按键间隔时间来区分判定鼠标中间和滚轮操作
 static float TouchPad_ReportInterval;//定义触摸板报告间隔时间
-static float Mouse_ReportInterval;//定义鼠标报告间隔时间
 static float Jitter_Interval;//定义抖动修正间隔时间
 
 static int Scroll_IntervalCount; //定义鼠标滚动间隔计数
@@ -101,7 +100,6 @@ void MouseLikeTouchPad_parse_init()
 			currentfinger[i].pos_y = 0;
 		}
 
-		Mouse_ReportInterval = 0;
 		Jitter_Interval = 0;
 		Scroll_IntervalCount = 0;
 		evt_idle_repeat_count = 0;
@@ -134,9 +132,6 @@ void MouseLikeTouchPad_parse(u8* data, LONG length)
 	ticktime_Interval.QuadPart = (current_ticktime.QuadPart - last_ticktime.QuadPart) * tp->tick_count / 10000;//单位ms毫秒
 	TouchPad_ReportInterval = (float)ticktime_Interval.LowPart;//触摸板报告间隔时间ms
 	last_ticktime = current_ticktime;
-
-	Mouse_ReportInterval += TouchPad_ReportInterval;
-
 
 	//保存当前手指坐标
 	if (!pr->is_finger) {//is_finger参数判断手指全部离开，不能用pr->state & 0x80)、pr->state 判断因为多点触摸时任意一个手指离开都会产生该信号，也不能用pr->finger_number判断因为该值不会为0
@@ -364,26 +359,7 @@ void MouseLikeTouchPad_parse(u8* data, LONG length)
 	}
 
 	evt.button = Mouse_LButton_Status + (Mouse_RButton_Status << 1) + (Mouse_MButton_Status << 2);  //左中右键状态合成
-	if (lastfinger_count != currentfinger_count) {//按键变化优先报告
-		tp->evt_cbk(&evt, tp->evt_param);
-		Mouse_ReportInterval=0;
-	}
-	else if (Mouse_ReportInterval>=MouseReport_INTERVAL_MSEC) {
-		Mouse_ReportInterval = 0;
-
-		if (evt.dx == 0 && evt.dy == 0 && evt.h_wheel == 0 && evt.v_wheel == 0) {
-			if (evt_idle_repeat_count == 0) {
-				tp->evt_cbk(&evt, tp->evt_param);
-				evt_idle_repeat_count = 25;//倒数计数
-			}
-			else {
-				evt_idle_repeat_count--;
-			}
-		}
-		else {
-			tp->evt_cbk(&evt, tp->evt_param);
-		}
-	}
+	tp->evt_cbk(&evt, tp->evt_param);//设置鼠标事件
 	
 	//保存下一轮初始坐标
 	for (int i = 0; i < currentfinger_count; i++) {

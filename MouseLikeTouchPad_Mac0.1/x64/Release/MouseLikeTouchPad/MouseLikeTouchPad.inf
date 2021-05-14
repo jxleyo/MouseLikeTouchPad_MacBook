@@ -9,7 +9,7 @@ ClassGuid = {745a17a0-74d3-11d0-b6fe-00a0c90f57da}
 Provider = %ManufacturerName%
 CatalogFile = MouseLikeTouchPad.cat
 PnpLockdown=1	
-DriverVer = 04/17/2021,14.16.53.681
+DriverVer = 05/14/2021,20.6.36.801
 
 [DestinationDirs]
 DefaultDestDir = 12
@@ -32,6 +32,9 @@ hidkmdf.sys = 1
 %MouseLikeTouchPad.DeviceDesc%=MouseLikeTouchPad_Device, Hid\MouseLikeTouchPad
 %MouseLikeTouchPad.DeviceDesc%=MouseLikeTouchPad_Device, ACPI\PNP0C50
 %MouseLikeTouchPad.DeviceDesc%=MouseLikeTouchPad_Device, ACPI\ACPI0C50
+;%MouseLikeTouchPad.DeviceDesc%=MouseLikeTouchPad_Device, *ELAN962C
+;%MouseLikeTouchPad.DeviceDesc%=MouseLikeTouchPad_Device, ACPI\ELAN962C
+;%MouseLikeTouchPad.DeviceDesc%=MouseLikeTouchPad_Device, ACPI\VEN_ELAN&DEV_962C
 
 %MouseLikeTouchPad.DeviceDesc%=MouseLikeTouchPad_Device, SPI\VID_05ac&PID_0272&MI_02
 %MouseLikeTouchPad.DeviceDesc%=MouseLikeTouchPad_Device, SPI\VID_05ac&PID_0273&MI_02

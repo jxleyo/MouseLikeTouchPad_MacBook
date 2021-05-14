@@ -32,6 +32,9 @@ hidkmdf.sys = 1
 %MouseLikeTouchPad.DeviceDesc%=MouseLikeTouchPad_Device, Hid\MouseLikeTouchPad
 %MouseLikeTouchPad.DeviceDesc%=MouseLikeTouchPad_Device, ACPI\PNP0C50
 %MouseLikeTouchPad.DeviceDesc%=MouseLikeTouchPad_Device, ACPI\ACPI0C50
+;%MouseLikeTouchPad.DeviceDesc%=MouseLikeTouchPad_Device, *ELAN962C
+;%MouseLikeTouchPad.DeviceDesc%=MouseLikeTouchPad_Device, ACPI\ELAN962C
+;%MouseLikeTouchPad.DeviceDesc%=MouseLikeTouchPad_Device, ACPI\VEN_ELAN&DEV_962C
 
 %MouseLikeTouchPad.DeviceDesc%=MouseLikeTouchPad_Device, SPI\VID_05ac&PID_0272&MI_02
 %MouseLikeTouchPad.DeviceDesc%=MouseLikeTouchPad_Device, SPI\VID_05ac&PID_0273&MI_02
