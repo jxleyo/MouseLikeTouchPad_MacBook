@@ -13,8 +13,11 @@
 
 https://github.com/fanxiushu/kmouse_filter-AppleSPITrack-driver
 
-，少量参考https://github.com/imbushuo/mac-precision-touchpad的代码，
-感谢作者的开源代码，仿鼠标式触摸板的操作逻辑实现代码MouseLikeTouchPad_parse函数则是全部自己完成，本驱动替换Apple的AppleSPITrackpad驱动在macbook pro 2017版13寸不带bar的机器测试成功（其他版本估计也是可以的因为代码内没有和触摸板硬件相关的代码），安装后基本能够达到预期的逻辑实现目标。 
+，少量参考
+
+https://github.com/imbushuo/mac-precision-touchpad
+
+的代码，感谢作者的开源代码，仿鼠标式触摸板的操作逻辑实现代码MouseLikeTouchPad_parse函数则是全部自己完成，本驱动替换Apple的AppleSPITrackpad驱动在macbook pro 2017版13寸不带bar的机器测试成功（其他版本估计也是可以的因为代码内没有和触摸板硬件相关的代码），安装后基本能够达到预期的逻辑实现目标。 
 
 目前已经写了多个版本的逻辑算法实现在macbook硬件windows系统都存在各种奇怪的问题，食指/无名指和中指并拢操作时指针坐标突发性漂移（macbook硬件下原生macos系统和windows系统都同样存在但因为操作逻辑和仿鼠标触摸板不同不会有不良影响，初步怀疑是触摸板硬件的firmware固件设计上存在瑕疵无法准确通过双指并拢时电容出生的两个手指坐标）。
 
