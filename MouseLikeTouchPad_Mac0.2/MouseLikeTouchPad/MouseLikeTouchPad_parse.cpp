@@ -143,7 +143,7 @@ void MouseLikeTouchPad_parse_init()
 		FingerMinDistance = 12 * TouchPad_DPI * thumb_scale;//定义有效的相邻手指最小距离(和FingerTracingMaxOffset无直接关系)
 		FingerClosedThresholdDistance = 18 * TouchPad_DPI * thumb_scale;//定义相邻手指合拢时的最小距离(和FingerTracingMaxOffset无直接关系)
 		FingerMaxDistance = FingerMinDistance * 4;//定义有效的相邻手指最大距离(FingerMinDistance*4)  
-		PointerSensitivity = TouchPad_DPI / 40;
+		PointerSensitivity = TouchPad_DPI / 20;
 }
 
 void MouseLikeTouchPad_parse(UINT8* data, LONG length)
@@ -172,6 +172,17 @@ void MouseLikeTouchPad_parse(UINT8* data, LONG length)
 			}
 		}
 	}
+
+	//初始化鼠标事件
+	mouse_event_t mEvt;
+	mEvt.button = 0;
+	mEvt.dx = 0;
+	mEvt.dy = 0;
+	mEvt.h_wheel = 0;
+	mEvt.v_wheel = 0;
+	Mouse_LButton_Status = 0; //定义临时鼠标左键状态，0为释放，1为按下，每次都需要重置确保后面逻辑
+	Mouse_MButton_Status = 0; //定义临时鼠标中键状态，0为释放，1为按下，每次都需要重置确保后面逻辑
+	Mouse_RButton_Status = 0; //定义临时鼠标右键状态，0为释放，1为按下，每次都需要重置确保后面逻辑
 
 
 	//初始化当前触摸点索引号，跟踪后未再赋值的表示不存在了
@@ -210,6 +221,7 @@ void MouseLikeTouchPad_parse(UINT8* data, LONG length)
 			short dy = currentfinger[i].pos_y - lastfinger[Mouse_LButton_LastIndexID].pos_y;
 
 			if ((abs(dx) < FingerTracingMaxOffset) && (abs(dy) < FingerTracingMaxOffset)) {
+				Mouse_LButton_Status = 1; //找到左键，
 				Mouse_LButton_CurrentIndexID = i;//找到左键
 				continue;//查找其他功能
 			}
@@ -220,6 +232,7 @@ void MouseLikeTouchPad_parse(UINT8* data, LONG length)
 			short dy = currentfinger[i].pos_y - lastfinger[Mouse_RButton_LastIndexID].pos_y;
 
 			if ((abs(dx) < FingerTracingMaxOffset) && (abs(dy) < FingerTracingMaxOffset)) {
+				Mouse_RButton_Status = 1; //找到左键，
 				Mouse_RButton_CurrentIndexID = i;//找到左键
 				continue;//查找其他功能
 			}
@@ -229,7 +242,8 @@ void MouseLikeTouchPad_parse(UINT8* data, LONG length)
 			short dy = currentfinger[i].pos_y - lastfinger[Mouse_MButton_LastIndexID].pos_y;
 
 			if ((abs(dx) < FingerTracingMaxOffset) && (abs(dy) < FingerTracingMaxOffset)) {
-				Mouse_MButton_CurrentIndexID = i;//找到左键
+				Mouse_MButton_Status = 1; //找到中键，
+				Mouse_MButton_CurrentIndexID = i;//找到中键
 				continue;//查找其他功能
 			}
 		}
@@ -237,18 +251,6 @@ void MouseLikeTouchPad_parse(UINT8* data, LONG length)
 	}
 
 
-	//初始化鼠标事件
-	mouse_event_t mEvt;
-	mEvt.button = 0;
-	mEvt.dx = 0;
-	mEvt.dy = 0;
-	mEvt.h_wheel = 0;
-	mEvt.v_wheel = 0;
-	Mouse_LButton_Status = 0; //定义临时鼠标左键状态，0为释放，1为按下，每次都需要重置确保后面逻辑
-	Mouse_MButton_Status = 0; //定义临时鼠标中键状态，0为释放，1为按下，每次都需要重置确保后面逻辑
-	Mouse_RButton_Status = 0; //定义临时鼠标右键状态，0为释放，1为按下，每次都需要重置确保后面逻辑
-
-	
 	//开始鼠标事件逻辑判定
 	if (currentfinger_count > 3 && PtpReport->ClickOccurred) {
 		Mouse_MButton_Enabled = !Mouse_MButton_Enabled;//3指以上触摸并按压时可以随时切换开启/关闭鼠标中键功能
