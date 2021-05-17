@@ -200,7 +200,7 @@ static void CompletionRoutine(
 	if (NT_SUCCESS(status)) { // success
 		////
 		LONG retlen = (LONG)WdfRequestGetInformation(Request);
-		u8* data = (u8*)WdfMemoryGetBuffer(ext->RequestBuffer, NULL);
+		UINT8* data = (UINT8*)WdfMemoryGetBuffer(ext->RequestBuffer, NULL);
 
 		///
 		MouseLikeTouchPad_parse(data, retlen);
