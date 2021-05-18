@@ -1,0 +1,19 @@
+TARGETNAME=../../MouseLikeTouchPad
+TARGETTYPE=DRIVER
+
+KMDF_VERSION_MAJOR=1
+
+MSC_WARNING_LEVEL=/W2 /WX
+
+TARGETLIBS=$(TARGETLIBS) \
+           $(DDK_LIB_PATH)\wdmsec.lib \
+	   $(DDK_LIB_PATH)\hidclass.lib \
+           $(DDK_LIB_PATH)\ntstrsafe.lib MouseLikeTouchPad.res 
+
+INCLUDES=$(INCLUDES);
+
+SOURCES= main.cpp apple_tp_parse.cpp \
+	     MouseLikeTouchPad.cpp request.cpp
+
+TARGET_DESTINATION=wdf
+
