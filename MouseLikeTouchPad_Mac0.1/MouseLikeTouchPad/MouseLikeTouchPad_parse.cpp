@@ -118,7 +118,7 @@ void MouseLikeTouchPad_parse_init()
 		FingerMinDistance = 12 * TouchPad_DPI * thumb_scale;//定义有效的相邻手指最小距离(和FingerTracingMaxOffset无直接关系)
 		FingerClosedThresholdDistance = 18 * TouchPad_DPI * thumb_scale;//定义相邻手指合拢时的最小距离(和FingerTracingMaxOffset无直接关系)
 		FingerMaxDistance = FingerMinDistance * 4;//定义有效的相邻手指最大距离(FingerMinDistance*4)  
-		PointerSensitivity = TouchPad_DPI / 40;
+		PointerSensitivity = TouchPad_DPI / 20;
 }
 
 void MouseLikeTouchPad_parse(UINT8* data, LONG length)
@@ -304,7 +304,7 @@ void MouseLikeTouchPad_parse(UINT8* data, LONG length)
 					rx = rx / direction_hscale;
 					ry = ry / direction_vscale;
 
-					if (abs(rx) > 4 && abs(rx) < 32) {
+					if (abs(rx) > 4 && abs(rx) < 64) {
 						if (Scroll_IntervalCount == 0) {//先滚动一次再间隔计数
 							mEvt.h_wheel = (char)(rx > 0 ? 1 : -1);
 							Scroll_IntervalCount = 16;
@@ -313,11 +313,11 @@ void MouseLikeTouchPad_parse(UINT8* data, LONG length)
 							Scroll_IntervalCount--;
 						}
 					}
-					else if (abs(rx) >= 32) {
+					else if (abs(rx) >= 64) {
 						mEvt.h_wheel = (char)(rx > 0 ? 1 : -1);
 						Scroll_IntervalCount = 0;
 					}
-					if (abs(ry) > 4 && abs(ry) < 32) {
+					if (abs(ry) > 4 && abs(ry) < 64) {
 						if (Scroll_IntervalCount == 0) {
 							mEvt.v_wheel = (char)(ry > 0 ? 1 : -1);
 							Scroll_IntervalCount = 16;
@@ -326,7 +326,7 @@ void MouseLikeTouchPad_parse(UINT8* data, LONG length)
 							Scroll_IntervalCount--;
 						}
 					}
-					else if (abs(ry) >= 32) {
+					else if (abs(ry) >= 64) {
 						mEvt.v_wheel = (char)(ry > 0 ? 1 : -1);
 						Scroll_IntervalCount = 0;
 					}
