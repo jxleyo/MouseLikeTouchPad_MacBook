@@ -12,7 +12,7 @@ extern "C" int _fltused = 0;
 #define MButton_Interval_MSEC         200   // 鼠标左中右键与指针操作间隔时间ms，
 
 #define Jitter_Offset         5    // 修正触摸点轻微抖动的位移阈值
-#define Exception_Offset         2    // 修正触摸点漂移异常的位移阈值
+
 
 struct MouseLikeTouchPad_state
 {
@@ -355,49 +355,7 @@ void MouseLikeTouchPad_parse(UINT8* data, LONG length)
 					py = 0;
 				}
 					//其他手指非常紧贴中指时作参考位移修正处理	
-				if (Mouse_LButton_CurrentIndexID != -1) {
-						float lx = (float)(currentfinger[Mouse_LButton_CurrentIndexID].pos_x - lastfinger[Mouse_LButton_LastIndexID].pos_x) / thumb_scale;
-						if (abs(lx - px) > Exception_Offset|| (lx>0 && px<0) || (lx < 0 && px > 0)) {//参考触摸点位移与指针位移差异过大或者位移方向相反
-							px = 0;
-							py = 0;
-						}
-				}
-				if (Mouse_RButton_CurrentIndexID != -1) {
-					float rx = (float)(currentfinger[Mouse_RButton_CurrentIndexID].pos_x - lastfinger[Mouse_RButton_LastIndexID].pos_x) / thumb_scale;
-					if (abs(rx - px) > Exception_Offset || (rx > 0 && px < 0) || (rx < 0 && px > 0)) {//参考触摸点位移与指针位移差异过大或者位移方向相反
-						px = 0;
-						py = 0;
-					}
-				}
-				if (Mouse_MButton_CurrentIndexID != -1) {
-					float mx = (float)(currentfinger[Mouse_MButton_CurrentIndexID].pos_x - lastfinger[Mouse_MButton_LastIndexID].pos_x) / thumb_scale;
-					if (abs(mx - px) > Exception_Offset || (mx > 0 && px < 0) || (mx < 0 && px > 0)) {//参考触摸点位移与指针位移差异过大或者位移方向相反
-						px = 0;
-						py = 0;
-					}
-				}
 				
-				if (Mouse_LButton_CurrentIndexID != -1) {
-						float ly = (float)(currentfinger[Mouse_LButton_CurrentIndexID].pos_y - lastfinger[Mouse_LButton_LastIndexID].pos_y) / thumb_scale;
-						if (abs(ly - py) > Exception_Offset || (ly > 0 && py < 0) || (ly < 0 && py > 0)) {//参考触摸点位移与指针位移差异过大或者位移方向相反
-							px = 0;
-							py = 0;
-						}
-				}
-				if (Mouse_RButton_CurrentIndexID != -1) {
-					float ry = (float)(currentfinger[Mouse_RButton_CurrentIndexID].pos_y - lastfinger[Mouse_RButton_LastIndexID].pos_y) / thumb_scale;
-					if (abs(ry - py) > Exception_Offset || (ry > 0 && py < 0) || (ry < 0 && py > 0)) {//参考触摸点位移与指针位移差异过大或者位移方向相反
-						px = 0;
-						py = 0;
-					}
-				}
-				if (Mouse_MButton_CurrentIndexID != -1) {
-					float my = (float)(currentfinger[Mouse_MButton_CurrentIndexID].pos_y - lastfinger[Mouse_MButton_LastIndexID].pos_y) / thumb_scale;
-					if (abs(my - py) > Exception_Offset || (my > 0 && py < 0) || (my < 0 && py > 0)) {//参考触摸点位移与指针位移差异过大或者位移方向相反
-						px = 0;
-						py = 0;
-					}
-				}
 			}
 			mEvt.dx = (short)(px / PointerSensitivity);
 			mEvt.dy = -(short)(py / PointerSensitivity);
@@ -425,20 +383,7 @@ void MouseLikeTouchPad_parse(UINT8* data, LONG length)
 					py = 0;
 				}
 				//其他手指非常紧贴中指时作参考位移修正处理	
-				if (Mouse_Wheel_CurrentIndexID != -1) {
-					float wx = (float)(currentfinger[Mouse_Wheel_CurrentIndexID].pos_x - lastfinger[Mouse_Wheel_LastIndexID].pos_x) / thumb_scale;
-					if (abs(wx - px) > Exception_Offset || (wx > 0 && px < 0) || (wx < 0 && px > 0)) {//参考触摸点位移与指针位移差异过大或者位移方向相反
-						px = 0;
-						py = 0;
-					}
-				}
-				if (Mouse_Wheel_CurrentIndexID != -1) {
-					float wy = (float)(currentfinger[Mouse_Wheel_CurrentIndexID].pos_y - lastfinger[Mouse_Wheel_LastIndexID].pos_y) / thumb_scale;
-					if (abs(wy - py) > Exception_Offset || (wy > 0 && py < 0) || (wy < 0 && py > 0)) {//参考触摸点位移与指针位移差异过大或者位移方向相反
-						px = 0;
-						py = 0;
-					}
-				}
+				
 			}
 
 			int direction_hscale = 1;//滚动方向缩放比例
@@ -456,7 +401,7 @@ void MouseLikeTouchPad_parse(UINT8* data, LONG length)
 			px = px / direction_hscale;
 			py = py / direction_vscale;
 
-			if (abs(px) > 4 && abs(px) < 32) {
+			if (abs(px) > 4 && abs(px) < 64) {
 				if (Scroll_IntervalCount == 0) {//先滚动一次再间隔计数
 					mEvt.h_wheel = (char)(px > 0 ? 1 : -1);
 					Scroll_IntervalCount = 16;
@@ -465,11 +410,11 @@ void MouseLikeTouchPad_parse(UINT8* data, LONG length)
 					Scroll_IntervalCount--;
 				}
 			}
-			else if (abs(px) >= 32) {
+			else if (abs(px) >= 64) {
 				mEvt.h_wheel = (char)(px > 0 ? 1 : -1);
 				Scroll_IntervalCount = 0;
 			}
-			if (abs(py) > 4 && abs(py) < 32) {
+			if (abs(py) > 4 && abs(py) < 64) {
 				if (Scroll_IntervalCount == 0) {
 					mEvt.v_wheel = (char)(py > 0 ? 1 : -1);
 					Scroll_IntervalCount = 16;
@@ -478,7 +423,7 @@ void MouseLikeTouchPad_parse(UINT8* data, LONG length)
 					Scroll_IntervalCount--;
 				}
 			}
-			else if (abs(py) >= 32) {
+			else if (abs(py) >= 64) {
 				mEvt.v_wheel = (char)(py > 0 ? 1 : -1);
 				Scroll_IntervalCount = 0;
 			}
