@@ -188,11 +188,6 @@ void MouseLikeTouchPad_parse(UINT8* data, LONG length)
 	Mouse_RButton_CurrentIndexID = -1;
 	Mouse_MButton_CurrentIndexID = -1;
 	Mouse_Wheel_CurrentIndexID = -1;
-
-	//指针特殊跟踪
-	if (currentfinger_count == 1 && Mouse_Pointer_LastIndexID != -1) {//只有一个触摸点时默认为指针
-		Mouse_Pointer_CurrentIndexID = 0;//找到指针
-	}
 	
 	//所有手指触摸点跟踪
 	for (char i = 0; i < currentfinger_count; i++) {
@@ -252,10 +247,44 @@ void MouseLikeTouchPad_parse(UINT8* data, LONG length)
 		
 	}
 
-	//开始鼠标事件逻辑判定，注意多手指非同时快速接触触摸板时触摸板报告可能存在一帧中同时新增多个触摸点的情况所以不能用当前只有一个触摸点作为定义指针的判断条件，并且也不能用Mouse_Pointer_LastIndexID==-1作为新指针定义条件避免有其他剩余手指存在后误判
-	if (lastfinger_count == 0 && currentfinger_count > 0) {//鼠标指针、左键、右键、中键都未定义,
-		Mouse_Pointer_CurrentIndexID = 0;  //首个触摸点作为指针
-		MousePointer_DefineTime = current_ticktime;//定义当前指针起始时间
+	//开始鼠标事件逻辑判定
+	//注意多手指非同时快速接触触摸板时触摸板报告可能存在一帧中同时新增多个触摸点的情况所以不能用当前只有一个触摸点作为定义指针的判断条件
+	if (Mouse_Pointer_LastIndexID == -1 && currentfinger_count > 0) {//鼠标指针、左键、右键、中键都未定义,
+		//指针触摸点压力、接触面长宽比阈值特征区分判定手掌打字误触和正常操作,压力越小接触面长宽比阈值越大、长度阈值越小
+		BOOLEAN FakePointer = TRUE;
+		short press = currentfinger[0].Pressure;
+		short len = currentfinger[0].ToolMajor;
+		double ratio = currentfinger[0].ToolMajor / currentfinger[0].ToolMinor;
+		if (press < 4) {
+			if (ratio < 1.7 && len < 800) {
+				FakePointer = FALSE;
+			}
+		}
+		else if (press < 8) {
+			if (ratio < 1.6 && len < 900) {
+				FakePointer = FALSE;
+			}
+		}
+		else if (press >= 8 && press <12) {
+			if (ratio < 1.5 && len < 1000) {
+				FakePointer = FALSE;
+			}
+		}
+		else if (press >= 12 && press < 16) {
+			if (ratio < 1.45 && len < 1200) {
+				FakePointer = FALSE;
+			}
+		}
+		else if (press >= 16) {
+			if (ratio < 1.4 && len < 1350) {
+				FakePointer = FALSE;
+			}
+		}
+		
+		if (!FakePointer) {
+			Mouse_Pointer_CurrentIndexID = 0;  //首个触摸点作为指针
+			MousePointer_DefineTime = current_ticktime;//定义当前指针起始时间
+		}
 	}
 	else if (Mouse_Pointer_CurrentIndexID == -1 && Mouse_Pointer_LastIndexID != -1) {//指针消失
 		Mouse_Wheel_mode = FALSE;//结束滚轮模式
@@ -266,8 +295,7 @@ void MouseLikeTouchPad_parse(UINT8* data, LONG length)
 		Mouse_MButton_CurrentIndexID = -1;
 		Mouse_Wheel_CurrentIndexID = -1;
 	}
-	//指针已定义的非滚轮事件处理  //指针触摸点压力、接触面长宽比阈值特征区分判定手掌打字误触和正常操作
-	else if (Mouse_Pointer_CurrentIndexID != -1 && !Mouse_Wheel_mode && (currentfinger[Mouse_Pointer_CurrentIndexID].Pressure > 16  && currentfinger[Mouse_Pointer_CurrentIndexID].ToolMajor / currentfinger[Mouse_Pointer_CurrentIndexID].ToolMinor<1.5)) {  
+	else if (Mouse_Pointer_CurrentIndexID != -1 && !Mouse_Wheel_mode) {  //指针已定义的非滚轮事件处理
 		//查找指针左侧或者右侧是否有并拢的手指作为滚轮模式或者按键模式，当指针左侧/右侧的手指按下时间与指针手指定义时间间隔小于设定阈值时判定为鼠标滚轮否则为鼠标按键，这一规则能有效区别按键与滚轮操作,但鼠标按键和滚轮不能一起使用
 		//按键定义后会跟踪坐标所以左键和中键不能滑动食指互相切换需要抬起食指后进行改变，左键/中键/右键按下的情况下不能转变为滚轮模式，
 		LARGE_INTEGER MouseButton_Interval;
@@ -314,7 +342,7 @@ void MouseLikeTouchPad_parse(UINT8* data, LONG length)
 		if (currentfinger_count != lastfinger_count) {//手指变化瞬间时电容可能不稳定指针坐标突发性漂移需要忽略
 			JitterFixStartTime = current_ticktime;//抖动修正开始计时
 		}
-		else{
+		else {
 			LARGE_INTEGER FixTimer;
 			FixTimer.QuadPart = (current_ticktime.QuadPart - JitterFixStartTime.QuadPart) * tp->tick_count / 10000;//单位ms毫秒
 			float JitterFixTimer = (float)FixTimer.LowPart;//当前抖动时间计时
@@ -323,10 +351,10 @@ void MouseLikeTouchPad_parse(UINT8* data, LONG length)
 			if (Mouse_MButton_CurrentIndexID != -1) {//中键状态下手指并拢的抖动修正值区别处理
 				STABLE_INTERVAL = STABLE_INTERVAL_FingerClosed_MSEC;
 			}
-			else{
+			else {
 				STABLE_INTERVAL = STABLE_INTERVAL_FingerSeparated_MSEC;
 			}
-			if (JitterFixTimer> STABLE_INTERVAL) {//触摸点稳定时间后
+			if (JitterFixTimer > STABLE_INTERVAL) {//触摸点稳定时间后
 				float px = (float)(currentfinger[Mouse_Pointer_CurrentIndexID].X - lastfinger[Mouse_Pointer_LastIndexID].X) / thumb_scale;
 				float py = (float)(currentfinger[Mouse_Pointer_CurrentIndexID].Y - lastfinger[Mouse_Pointer_LastIndexID].Y) / thumb_scale;
 
