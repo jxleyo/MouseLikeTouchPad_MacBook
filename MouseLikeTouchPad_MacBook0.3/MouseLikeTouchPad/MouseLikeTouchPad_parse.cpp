@@ -140,7 +140,7 @@ void MouseLikeTouchPad_parse_init()
 		FingerMinDistance = 12 * TouchPad_DPI * thumb_scale;//定义有效的相邻手指最小距离(和FingerTracingMaxOffset无直接关系)
 		FingerClosedThresholdDistance = 18 * TouchPad_DPI * thumb_scale;//定义相邻手指合拢时的最小距离(和FingerTracingMaxOffset无直接关系)
 		FingerMaxDistance = FingerMinDistance * 4;//定义有效的相邻手指最大距离(FingerMinDistance*4)  
-		PointerSensitivity = TouchPad_DPI / 20;
+		PointerSensitivity = TouchPad_DPI / 25;
 }
 
 void MouseLikeTouchPad_parse(UINT8* data, LONG length)
@@ -254,7 +254,13 @@ void MouseLikeTouchPad_parse(UINT8* data, LONG length)
 		BOOLEAN FakePointer = TRUE;
 		short press = currentfinger[0].Pressure;
 		short len = currentfinger[0].ToolMajor;
-		double ratio = currentfinger[0].ToolMajor / currentfinger[0].ToolMinor;
+		double ratio;
+		if (currentfinger[0].ToolMinor != 0) {
+			ratio = currentfinger[0].ToolMajor / currentfinger[0].ToolMinor;
+		}
+		else {
+			ratio = 2;
+		}
 		if (press < 4) {
 			if (ratio < 1.7 && len < 800) {
 				FakePointer = FALSE;
