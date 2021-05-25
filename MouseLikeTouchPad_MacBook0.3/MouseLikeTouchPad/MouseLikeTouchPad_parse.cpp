@@ -78,6 +78,8 @@ static float FingerClosedThresholdDistance;//定义相邻手指合拢时的最小距离(和Fing
 static float FingerMaxDistance;//定义有效的相邻手指最大距离
 static float TouchPad_DPI;//定义触摸板分辨率
 static float PointerSensitivity;//定义指针灵敏度即指针点移动量缩放比例
+static float scales[3];//手指大小采样
+static UINT8 sampcount;//手指大小采样计数
 
 //定义相当于全局变量的tp
 static MouseLikeTouchPad_state tp_state;
@@ -141,6 +143,7 @@ void MouseLikeTouchPad_parse_init()
 		FingerClosedThresholdDistance = 18 * TouchPad_DPI * thumb_scale;//定义相邻手指合拢时的最小距离(和FingerTracingMaxOffset无直接关系)
 		FingerMaxDistance = FingerMinDistance * 4;//定义有效的相邻手指最大距离(FingerMinDistance*4)  
 		PointerSensitivity = TouchPad_DPI / 25;
+		sampcount = 0;//手指大小采样计数
 }
 
 void MouseLikeTouchPad_parse(UINT8* data, LONG length)
@@ -253,10 +256,10 @@ void MouseLikeTouchPad_parse(UINT8* data, LONG length)
 		//指针触摸点压力、接触面长宽比阈值特征区分判定手掌打字误触和正常操作,压力越小接触面长宽比阈值越大、长度阈值越小
 		BOOLEAN FakePointer = TRUE;
 		short press = currentfinger[0].Pressure;
-		short len = currentfinger[0].ToolMajor;
+		float len = currentfinger[0].ToolMajor/ thumb_scale;
 		double ratio;
 		if (currentfinger[0].ToolMinor != 0) {
-			ratio = currentfinger[0].ToolMajor / currentfinger[0].ToolMinor;
+			ratio = (currentfinger[0].ToolMajor / currentfinger[0].ToolMinor) / thumb_scale;
 		}
 		else {
 			ratio = 2;
@@ -375,6 +378,23 @@ void MouseLikeTouchPad_parse(UINT8* data, LONG length)
 
 				mEvt.dx = (short)(px / PointerSensitivity);
 				mEvt.dy = -(short)(py / PointerSensitivity);
+
+				//thumb_scale手指大小采样以适配不同的使用者,3次采样取平均值
+				if (sampcount < 3) {
+					if (currentfinger[Mouse_Pointer_CurrentIndexID].Pressure > 20 && currentfinger[Mouse_Pointer_CurrentIndexID].Pressure < 25) {
+						scales[sampcount] = (float)currentfinger[Mouse_Pointer_CurrentIndexID].ToolMinor / 750;
+						sampcount++;
+					}
+					else if (currentfinger[Mouse_Pointer_CurrentIndexID].Pressure > 25 && currentfinger[Mouse_Pointer_CurrentIndexID].Pressure < 75) {
+						scales[sampcount] = (float)currentfinger[Mouse_Pointer_CurrentIndexID].ToolMinor / 800;
+						sampcount++;
+					}
+				}
+				else if(sampcount==3) {
+					thumb_scale = (scales[0] + scales[1] + scales[2]) / 3;
+					sampcount = 0;
+				}
+				
 			}
 		}
 	}
