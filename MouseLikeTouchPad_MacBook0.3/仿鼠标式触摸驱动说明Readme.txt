@@ -1,5 +1,5 @@
 # MouseLikeTouchPad_MacBook
-仿鼠标式触摸板驱动macbook on windows10 touchpad driver
+仿鼠标式触摸板驱动程序macbook on windows10 touchpad driver
 
 仿鼠标式触摸板是一种模拟鼠标功能的触摸板技术实现，当前的逻辑实现版本是发明人基于仿鼠标触摸板专利技术根据人手指操作时自然状态再次优化改进而成，3指完成鼠标左键/右键/中键和指针的操作，手指与鼠标的各个按键等部件的功能一一对应，其中的中指对应鼠标的指针定位器，食指对应鼠标左键和中键（食指与中指分开时定义为鼠标左键，食指与中指并拢时定义为鼠标中键），无名指对应鼠标右键，中无名并拢时对应鼠标垂直滚轮和水平滚轮。
 
@@ -30,7 +30,13 @@ macbook 0.1版驱动把坐标跟踪融合进了操作功能逻辑实现方法中，macbook 0.2版本在鼠标
 
 卸载方法： 设备管理器》人体学输入设备》MouseLikeTouchPad右键卸载设备》选中删除此设备的驱动程序软件复选框后卸载即可。
 
-仿鼠标式触摸板专利作者：大余县乐友电子科技部 黄瑞平 相关资料： 笔记本电脑革命-仿鼠标式触摸板 视频演示 https://www.bilibili.com/video/av48712199
+仿鼠标式触摸板专利作者：大余县乐友电子科技部 黄瑞平 相关资料： 
+
+仿鼠标式触摸板实机演示https://www.bilibili.com/video/BV1Bh411Y7aY
+
+仿鼠标式触摸板实机演示操作CS游戏https://www.bilibili.com/video/BV1qN411Z72r
+
+笔记本电脑革命-仿鼠标式触摸板 视频演示 https://www.bilibili.com/video/av48712199
 
 笔记本模式笔记本电脑革命-仿鼠标式触摸板 笔记本模式4K 视频演示 https://www.bilibili.com/video/av64713037
 
@@ -39,3 +45,5 @@ macbook 0.1版驱动把坐标跟踪融合进了操作功能逻辑实现方法中，macbook 0.2版本在鼠标
 仿鼠标式触摸板-笔记本电脑技术革命 https://www.bilibili.com/read/cv2522582
 
 仿鼠标式触摸板技术原理说明书中文版 https://www.bilibili.com/read/cv2522031
+
+免费开源驱动下载地址https://github.com/jxleyo/MouseLikeTouchPad_MacBook

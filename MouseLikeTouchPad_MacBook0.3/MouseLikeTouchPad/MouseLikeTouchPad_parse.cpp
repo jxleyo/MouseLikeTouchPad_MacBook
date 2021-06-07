@@ -379,18 +379,22 @@ void MouseLikeTouchPad_parse(UINT8* data, LONG length)
 				mEvt.dx = (short)(px / PointerSensitivity);
 				mEvt.dy = -(short)(py / PointerSensitivity);
 
-				//thumb_scale手指大小采样以适配不同的使用者,3次采样取平均值
+				//thumb_scale手指大小采样以适配不同的使用者,3次采样取平均值,并限制最大最小值
 				if (sampcount < 3) {
 					if (currentfinger[Mouse_Pointer_CurrentIndexID].Pressure > 20 && currentfinger[Mouse_Pointer_CurrentIndexID].Pressure < 25) {
-						scales[sampcount] = (float)currentfinger[Mouse_Pointer_CurrentIndexID].ToolMinor / 750;
-						sampcount++;
+						if (currentfinger[Mouse_Pointer_CurrentIndexID].ToolMinor > 600 || currentfinger[Mouse_Pointer_CurrentIndexID].ToolMinor < 850) {
+							scales[sampcount] = (float)currentfinger[Mouse_Pointer_CurrentIndexID].ToolMinor / 750;
+							sampcount++;
+						}
 					}
 					else if (currentfinger[Mouse_Pointer_CurrentIndexID].Pressure > 25 && currentfinger[Mouse_Pointer_CurrentIndexID].Pressure < 75) {
-						scales[sampcount] = (float)currentfinger[Mouse_Pointer_CurrentIndexID].ToolMinor / 800;
-						sampcount++;
+						if (currentfinger[Mouse_Pointer_CurrentIndexID].ToolMinor > 600 || currentfinger[Mouse_Pointer_CurrentIndexID].ToolMinor < 850) {
+							scales[sampcount] = (float)currentfinger[Mouse_Pointer_CurrentIndexID].ToolMinor / 800;
+							sampcount++;
+						}
 					}
 				}
-				else if(sampcount==3) {
+				else if (sampcount == 3) {
 					thumb_scale = (scales[0] + scales[1] + scales[2]) / 3;
 					sampcount = 0;
 				}
