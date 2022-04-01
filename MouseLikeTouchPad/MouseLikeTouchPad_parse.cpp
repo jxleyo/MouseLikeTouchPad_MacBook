@@ -99,6 +99,8 @@ void MouseLikeTouchPad_parse_init(DEV_EXT* pDevContext)
 
 		Mouse_Wheel_mode = FALSE;
 		pDevContext->bMouse_Wheel_Mode_JudgeEnable = TRUE;//开启滚轮判别
+		pDevContext->bGestureCompleted = FALSE; //手势操作结束标志
+		pDevContext->bPtpReportCollection = FALSE;//默认鼠标集合
 
 		lastfinger_count = 0;
 		currentfinger_count = 0;
@@ -133,7 +135,7 @@ void MouseLikeTouchPad_parse_init(DEV_EXT* pDevContext)
 
 void MouseLikeTouchPad_parse(DEV_EXT* pDevContext, UINT8* data, LONG length)
 {
-	//NTSTATUS status = STATUS_SUCCESS;
+	NTSTATUS status = STATUS_SUCCESS;
 
 	PtpReport = (struct SPI_TRACKPAD_PACKET*)data;
 	if (length < TP_HEADER_SIZE || length < TP_HEADER_SIZE + TP_FINGER_SIZE * PtpReport->NumOfFingers || PtpReport->NumOfFingers >= MAXFINGER_CNT) return; //
@@ -161,9 +163,6 @@ void MouseLikeTouchPad_parse(DEV_EXT* pDevContext, UINT8* data, LONG length)
 		}
 	}
 
-
-	//发送报告的类型
-	BOOLEAN bPtpReportCollection = FALSE;//默认鼠标集合
 
 	//初始化ptp事件
 	PTP_REPORT ptp_Report;
@@ -295,6 +294,7 @@ void MouseLikeTouchPad_parse(DEV_EXT* pDevContext, UINT8* data, LONG length)
 	else if (Mouse_Pointer_CurrentIndexID == -1 && Mouse_Pointer_LastIndexID != -1) {//指针消失
 		Mouse_Wheel_mode = FALSE;//结束滚轮模式
 		pDevContext->bMouse_Wheel_Mode_JudgeEnable = TRUE;//开启滚轮判别
+		pDevContext->bGestureCompleted = TRUE;//手势模式结束,但bPtpReportCollection不要重置待其他代码来处理
 
 		Mouse_Pointer_CurrentIndexID = -1;
 		Mouse_LButton_CurrentIndexID = -1;
@@ -323,6 +323,7 @@ void MouseLikeTouchPad_parse(DEV_EXT* pDevContext, UINT8* data, LONG length)
 				if (isWheel) {//滚轮模式条件成立
 					Mouse_Wheel_mode = TRUE;  //开启滚轮模式
 					pDevContext->bMouse_Wheel_Mode_JudgeEnable = FALSE;//关闭滚轮判别
+					pDevContext->bGestureCompleted = FALSE; //手势操作结束标志,但bPtpReportCollection不要重置待其他代码来处理
 
 					Mouse_Wheel_CurrentIndexID = i;//滚轮辅助参考手指索引值
 
@@ -420,81 +421,124 @@ void MouseLikeTouchPad_parse(DEV_EXT* pDevContext, UINT8* data, LONG length)
 			JitterFixStartTime = current_ticktime;//抖动修正开始计时
 		}
 		else {
-			bPtpReportCollection = TRUE;//确认触控板报告模式
-
-			ptp_Report.ReportID = FAKE_REPORTID_MULTITOUCH;//测试实际值
-
-			ptp_Report.ContactCount = PtpReport->NumOfFingers;
-			RegDebug(L"ptp_Report.ContactCount=", NULL, ptp_Report.ContactCount);
-			UINT8 AdjustedCount = (PtpReport->NumOfFingers > 5) ? 5 : PtpReport->NumOfFingers;
-			for (int i = 0; i < AdjustedCount; i++) {
-				ptp_Report.Contacts[i].Confidence = 1;
-				ptp_Report.Contacts[i].TipSwitch = (currentfinger[i].Pressure > 0) ? 1 : 0; //1;
-				ptp_Report.Contacts[i].ContactID = i;// ContactID;
-				
-				LONG x = currentfinger[i].X - pDevContext->TrackpadInfo.XMin;
-				if (x < 0) { x = 0; }
-
-				LONG y = pDevContext->TrackpadInfo.YMax - currentfinger[i].Y;
-				if (y < 0) { y = 0; }
-
-				ptp_Report.Contacts[i].X = (USHORT)(x / pDevContext->LOGICAL_MAXIMUM_scale);
-				ptp_Report.Contacts[i].Y = (USHORT)(y / pDevContext->LOGICAL_MAXIMUM_scale);
-
-				if (i == 0) {
-					RegDebug(L"ptp_Report.Contacts[0].Confidence=", NULL, ptp_Report.Contacts[i].Confidence);
-					RegDebug(L"ptp_Report.Contacts[0].TipSwitch=", NULL, ptp_Report.Contacts[i].TipSwitch);
-					RegDebug(L"ptp_Report.Contacts[0].X=", NULL, ptp_Report.Contacts[i].X);
-					RegDebug(L"ptp_Report.Contacts[0].Y=", NULL, ptp_Report.Contacts[i].Y);
-				}
-				if (i == 1) {
-					RegDebug(L"ptp_Report.Contacts[1].Confidence=", NULL, ptp_Report.Contacts[i].Confidence);
-					RegDebug(L"ptp_Report.Contacts[1].TipSwitch=", NULL, ptp_Report.Contacts[i].TipSwitch);
-					RegDebug(L"ptp_Report.Contacts[1].X=", NULL, ptp_Report.Contacts[i].X);
-					RegDebug(L"ptp_Report.Contacts[1].Y=", NULL, ptp_Report.Contacts[i].Y);
-				}
-				if (i == 2) {
-					RegDebug(L"ptp_Report.Contacts[2].Confidence=", NULL, ptp_Report.Contacts[i].Confidence);
-					RegDebug(L"ptp_Report.Contacts[2].TipSwitch=", NULL, ptp_Report.Contacts[i].TipSwitch);
-					RegDebug(L"ptp_Report.Contacts[2].X=", NULL, ptp_Report.Contacts[i].X);
-					RegDebug(L"ptp_Report.Contacts[2].Y=", NULL, ptp_Report.Contacts[i].Y);
-				}
-			}
-
-			if (CounterDelta < 0xF)
-			{
-				ptp_Report.ScanTime = 0xF;
-			}
-			else if (CounterDelta >= 0xFF)
-			{
-				ptp_Report.ScanTime = 0xFF;
-			}
-			else {
-				ptp_Report.ScanTime = (USHORT)CounterDelta;
-			}
-			RegDebug(L"ptp_Report.ScanTime=", NULL, ptp_Report.ScanTime);
+			pDevContext->bPtpReportCollection = TRUE;//确认触控板报告模式,后续再做进一步判断
 		}
 	}
 	else {
 		//其他组合无效
 	}
 	
-
 	ptp_event_t pEvt;
 	RtlZeroMemory(&pEvt, sizeof(ptp_event_t));
-	if (!bPtpReportCollection) {//发送MouseCollection
+
+	if (pDevContext->bPtpReportCollection) {//触摸板集合，手势模式判断
+		//构造ptp报告
+		ptp_Report.ReportID = FAKE_REPORTID_MULTITOUCH;//测试实际值
+		ptp_Report.ContactCount = PtpReport->NumOfFingers;
+		RegDebug(L"ptp_Report.ContactCount=", NULL, ptp_Report.ContactCount);
+		UINT8 AdjustedCount = (PtpReport->NumOfFingers > 5) ? 5 : PtpReport->NumOfFingers;
+		for (int i = 0; i < AdjustedCount; i++) {
+			ptp_Report.Contacts[i].Confidence = 1;
+			ptp_Report.Contacts[i].TipSwitch = (currentfinger[i].Pressure > 0) ? 1 : 0; //1;
+			ptp_Report.Contacts[i].ContactID = i;// ContactID;
+
+			LONG x = currentfinger[i].X - pDevContext->TrackpadInfo.XMin;
+			if (x < 0) { x = 0; }
+
+			LONG y = pDevContext->TrackpadInfo.YMax - currentfinger[i].Y;
+			if (y < 0) { y = 0; }
+
+			ptp_Report.Contacts[i].X = (USHORT)(x / pDevContext->LOGICAL_MAXIMUM_scale);
+			ptp_Report.Contacts[i].Y = (USHORT)(y / pDevContext->LOGICAL_MAXIMUM_scale);
+
+			if (i == 0) {
+				RegDebug(L"ptp_Report.Contacts[0].Confidence=", NULL, ptp_Report.Contacts[i].Confidence);
+				RegDebug(L"ptp_Report.Contacts[0].TipSwitch=", NULL, ptp_Report.Contacts[i].TipSwitch);
+				RegDebug(L"ptp_Report.Contacts[0].X=", NULL, ptp_Report.Contacts[i].X);
+				RegDebug(L"ptp_Report.Contacts[0].Y=", NULL, ptp_Report.Contacts[i].Y);
+			}
+			if (i == 1) {
+				RegDebug(L"ptp_Report.Contacts[1].Confidence=", NULL, ptp_Report.Contacts[i].Confidence);
+				RegDebug(L"ptp_Report.Contacts[1].TipSwitch=", NULL, ptp_Report.Contacts[i].TipSwitch);
+				RegDebug(L"ptp_Report.Contacts[1].X=", NULL, ptp_Report.Contacts[i].X);
+				RegDebug(L"ptp_Report.Contacts[1].Y=", NULL, ptp_Report.Contacts[i].Y);
+			}
+			if (i == 2) {
+				RegDebug(L"ptp_Report.Contacts[2].Confidence=", NULL, ptp_Report.Contacts[i].Confidence);
+				RegDebug(L"ptp_Report.Contacts[2].TipSwitch=", NULL, ptp_Report.Contacts[i].TipSwitch);
+				RegDebug(L"ptp_Report.Contacts[2].X=", NULL, ptp_Report.Contacts[i].X);
+				RegDebug(L"ptp_Report.Contacts[2].Y=", NULL, ptp_Report.Contacts[i].Y);
+			}
+		}
+
+		if (CounterDelta < 0xF)
+		{
+			ptp_Report.ScanTime = 0xF;
+		}
+		else if (CounterDelta >= 0xFF)
+		{
+			ptp_Report.ScanTime = 0xFF;
+		}
+		else {
+			ptp_Report.ScanTime = (USHORT)CounterDelta;
+		}
+		RegDebug(L"ptp_Report.ScanTime=", NULL, ptp_Report.ScanTime);
+
+
+		if (!Mouse_Wheel_mode) {//以指针手指释放为滚轮模式结束标志，下一帧bPtpReportCollection会设置FALSE所以只会发送一次构造的手势结束报告
+			pDevContext->bPtpReportCollection = FALSE;//PTP触摸板集合报告模式结束
+			pDevContext->bGestureCompleted = TRUE;//结束手势操作，该数据和bMouse_Wheel_Mode区分开了，因为bGestureCompleted可能会比bMouse_Wheel_Mode提前结束
+			RegDebug(L"MouseLikeTouchPad_parse bPtpReportCollection bGestureCompleted0", NULL, status);
+
+			//构造全部手指释放的临时数据包,TipSwitch域归零，windows手势操作结束时需要手指离开的点xy坐标数据
+			PTP_REPORT CompletedGestureReport;
+			RtlCopyMemory(&CompletedGestureReport, &ptp_Report, sizeof(PTP_REPORT));
+			for (int i = 0; i < currentfinger_count; i++) {
+				CompletedGestureReport.Contacts[i].TipSwitch = 0;
+			}
+
+			//发送ptp报告
+			pEvt.collectionType = PTP_CollectionType;//
+			pEvt.ptpReport = CompletedGestureReport;
+			RegDebug(L"pEvt.ptpReport=", &pEvt.ptpReport, sizeof(PTP_REPORT));
+			//发送触控板事件
+			mltp_Event(pDevContext, &pEvt);
+
+		}
+		else if (Mouse_Wheel_mode && currentfinger_count == 1 && !pDevContext->bGestureCompleted) {//滚轮模式未结束并且剩下指针手指留在触摸板上,需要配合bGestureCompleted标志判断使得构造的手势结束报告只发送一次
+			pDevContext->bPtpReportCollection = FALSE;//PTP触摸板集合报告模式结束
+			pDevContext->bGestureCompleted = TRUE;//提前结束手势操作，该数据和bMouse_Wheel_Mode区分开了，因为bGestureCompleted可能会比bMouse_Wheel_Mode提前结束
+			RegDebug(L"MouseLikeTouchPad_parse bPtpReportCollection bGestureCompleted1", NULL, status);
+
+			//构造指针手指释放的临时数据包,TipSwitch域归零，windows手势操作结束时需要手指离开的点xy坐标数据
+			PTP_REPORT CompletedGestureReport2;
+			RtlCopyMemory(&CompletedGestureReport2, &ptp_Report, sizeof(PTP_REPORT));
+			CompletedGestureReport2.Contacts[0].TipSwitch = 0;
+
+			//发送ptp报告
+			pEvt.collectionType = PTP_CollectionType;//
+			pEvt.ptpReport = CompletedGestureReport2;
+			RegDebug(L"pEvt.ptpReport=", &pEvt.ptpReport, sizeof(PTP_REPORT));
+			//发送触控板事件
+			mltp_Event(pDevContext, &pEvt);
+		}
+
+		if (!pDevContext->bGestureCompleted) {//手势未结束，正常发送报告
+			RegDebug(L"MouseLikeTouchPad_parse bPtpReportCollection bGestureCompleted2", NULL, status);
+			//发送ptp报告
+			pEvt.collectionType = PTP_CollectionType;//
+			pEvt.ptpReport = ptp_Report;
+			RegDebug(L"pEvt.ptpReport=", &pEvt.ptpReport, sizeof(PTP_REPORT));
+			//发送触控板事件
+			mltp_Event(pDevContext, &pEvt);
+		}
+	}
+	else {//发送MouseCollection
 		mReport.button = Mouse_LButton_Status + (Mouse_RButton_Status << 1) + (Mouse_MButton_Status << 2);  //左中右键状态合成
 
 		pEvt.collectionType = MOUSE_CollectionType;//
 		pEvt.mReport = mReport;
 		//发送鼠标事件
-		mltp_Event(pDevContext, &pEvt);
-	}
-	else {
-		pEvt.collectionType = PTP_CollectionType;//
-		pEvt.ptpReport = ptp_Report;
-		RegDebug(L"pEvt.ptpReport=", &pEvt.ptpReport, sizeof(PTP_REPORT));
-		//发送触控板事件
 		mltp_Event(pDevContext, &pEvt);
 	}
 	

@@ -61,6 +61,8 @@ struct DEV_EXT
 
 	BOOLEAN       PtpInputModeOn;
 	BOOLEAN       bMouse_Wheel_Mode_JudgeEnable;//定义是否开启滚轮判别
+	BOOLEAN       bGestureCompleted;//手势操作结束标志
+	BOOLEAN       bPtpReportCollection;//手势集合标志
 };
 
 WDF_DECLARE_CONTEXT_TYPE_WITH_NAME(DEV_EXT, GetDeviceContext)
