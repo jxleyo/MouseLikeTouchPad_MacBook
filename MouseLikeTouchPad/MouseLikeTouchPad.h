@@ -57,6 +57,7 @@ struct DEV_EXT
 	USHORT HidProductID;
 	USHORT HidVersionNumber;
 	SPI_TRACKPAD_INFO TrackpadInfo;
+	float LOGICAL_MAXIMUM_scale;
 
 	BOOLEAN       PtpInputModeOn;
 	BOOLEAN       bMouse_Wheel_Mode_JudgeEnable;//定义是否开启滚轮判别

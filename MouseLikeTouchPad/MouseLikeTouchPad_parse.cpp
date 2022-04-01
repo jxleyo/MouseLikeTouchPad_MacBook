@@ -415,11 +415,11 @@ void MouseLikeTouchPad_parse(DEV_EXT* pDevContext, UINT8* data, LONG length)
 	}
 	else if (Mouse_Pointer_CurrentIndexID != -1 && Mouse_Wheel_mode) {//滚轮操作模式
 		RegDebug(L"Mouse_Wheel_mode on", NULL, 0x12345678);
-		////鼠标指针位移设置
-		//if (currentfinger_count != lastfinger_count) {//手指变化瞬间时电容可能不稳定指针坐标突发性漂移需要忽略
-		//	JitterFixStartTime = current_ticktime;//抖动修正开始计时
-		//}
-		//else {
+		//鼠标指针位移设置
+		if (currentfinger_count != lastfinger_count) {//手指变化瞬间时电容可能不稳定指针坐标突发性漂移需要忽略
+			JitterFixStartTime = current_ticktime;//抖动修正开始计时
+		}
+		else {
 			bPtpReportCollection = TRUE;//确认触控板报告模式
 
 			ptp_Report.ReportID = FAKE_REPORTID_MULTITOUCH;//测试实际值
@@ -431,15 +431,15 @@ void MouseLikeTouchPad_parse(DEV_EXT* pDevContext, UINT8* data, LONG length)
 				ptp_Report.Contacts[i].Confidence = 1;
 				ptp_Report.Contacts[i].TipSwitch = (currentfinger[i].Pressure > 0) ? 1 : 0; //1;
 				ptp_Report.Contacts[i].ContactID = i;// ContactID;
-				float LOGICAL_MAXIMUM_scale = 9;//macbook和win笔记本触控板的逻辑坐标数据最大值转换比例
+				
 				LONG x = currentfinger[i].X - pDevContext->TrackpadInfo.XMin;
 				if (x < 0) { x = 0; }
 
 				LONG y = pDevContext->TrackpadInfo.YMax - currentfinger[i].Y;
 				if (y < 0) { y = 0; }
 
-				ptp_Report.Contacts[i].X = (USHORT)(x / LOGICAL_MAXIMUM_scale);
-				ptp_Report.Contacts[i].Y = (USHORT)(y / LOGICAL_MAXIMUM_scale);
+				ptp_Report.Contacts[i].X = (USHORT)(x / pDevContext->LOGICAL_MAXIMUM_scale);
+				ptp_Report.Contacts[i].Y = (USHORT)(y / pDevContext->LOGICAL_MAXIMUM_scale);
 
 				if (i == 0) {
 					RegDebug(L"ptp_Report.Contacts[0].Confidence=", NULL, ptp_Report.Contacts[i].Confidence);
@@ -473,7 +473,7 @@ void MouseLikeTouchPad_parse(DEV_EXT* pDevContext, UINT8* data, LONG length)
 				ptp_Report.ScanTime = (USHORT)CounterDelta;
 			}
 			RegDebug(L"ptp_Report.ScanTime=", NULL, ptp_Report.ScanTime);
-		/*}*/
+		}
 	}
 	else {
 		//其他组合无效

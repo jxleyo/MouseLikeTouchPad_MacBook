@@ -191,6 +191,7 @@ EvtDevicePrepareHardware(
 	pDeviceContext->HidVendorID = DeviceAttributes.VendorID;
 	pDeviceContext->HidProductID = DeviceAttributes.ProductID;
 	pDeviceContext->HidVersionNumber = DeviceAttributes.VersionNumber;
+	pDeviceContext->LOGICAL_MAXIMUM_scale = 9;
 
 	// Find proper metadata in HID registry
 	for (pTrackpadInfo = SpiTrackpadConfigTable; pTrackpadInfo->VendorId; ++pTrackpadInfo)
@@ -209,6 +210,8 @@ EvtDevicePrepareHardware(
 			RegDebug(L"TrackpadInfo.XMax=", NULL, pDeviceContext->TrackpadInfo.XMax);
 			RegDebug(L"TrackpadInfo.YMin=", NULL, pDeviceContext->TrackpadInfo.YMin);
 			RegDebug(L"TrackpadInfo.YMax=", NULL, pDeviceContext->TrackpadInfo.YMax);
+			pDeviceContext->LOGICAL_MAXIMUM_scale =(float)((pDeviceContext->TrackpadInfo.XMax - pDeviceContext->TrackpadInfo.XMin)/ 1404);//macbook和win笔记本触控板的逻辑坐标数据最大值转换比例
+
 			DeviceFound = TRUE;
 			break;
 		}
