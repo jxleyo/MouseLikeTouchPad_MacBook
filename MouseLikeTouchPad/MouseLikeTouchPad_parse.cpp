@@ -416,13 +416,7 @@ void MouseLikeTouchPad_parse(DEV_EXT* pDevContext, UINT8* data, LONG length)
 	}
 	else if (Mouse_Pointer_CurrentIndexID != -1 && Mouse_Wheel_mode) {//滚轮操作模式
 		RegDebug(L"Mouse_Wheel_mode on", NULL, 0x12345678);
-		//鼠标指针位移设置
-		if (currentfinger_count != lastfinger_count) {//手指变化瞬间时电容可能不稳定指针坐标突发性漂移需要忽略
-			JitterFixStartTime = current_ticktime;//抖动修正开始计时
-		}
-		else {
-			pDevContext->bPtpReportCollection = TRUE;//确认触控板报告模式,后续再做进一步判断
-		}
+		pDevContext->bPtpReportCollection = TRUE;//确认触控板报告模式,后续再做进一步判断
 	}
 	else {
 		//其他组合无效
@@ -475,9 +469,9 @@ void MouseLikeTouchPad_parse(DEV_EXT* pDevContext, UINT8* data, LONG length)
 		{
 			ptp_Report.ScanTime = 0xF;
 		}
-		else if (CounterDelta >= 0xFF)
+		else if (CounterDelta >= 0x64)
 		{
-			ptp_Report.ScanTime = 0xFF;
+			ptp_Report.ScanTime = 0x64;//此数值关系到滚轮和手势的速度，约小约灵敏快速
 		}
 		else {
 			ptp_Report.ScanTime = (USHORT)CounterDelta;
