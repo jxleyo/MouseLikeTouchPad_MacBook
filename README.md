@@ -16,7 +16,7 @@ MouseLikeTouchPad_SPI Hid Driver for Macbook on windows10仿鼠标式触摸板�
 
 卸载方法： 设备管理器》人体学输入设备》MouseLikeTouchPad_SPI右键卸载设备》选中删除此设备的驱动程序软件复选框后卸载即可。
 
-仿鼠标式触摸板实机演示https://www.bilibili.com/video/BV1Bh411Y7aY
+仿鼠标式触摸板实机演示https://www.bilibili.com/video/BV1aT4y1v7NM
 
 使用操作视频教程网址：
 https://space.bilibili.com/409976933
