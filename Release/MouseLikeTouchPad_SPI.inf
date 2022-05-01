@@ -1,0 +1,110 @@
+[Version]
+Signature = "$WINDOWS NT$"
+Class = HIDClass
+ClassGuid = {745a17a0-74d3-11d0-b6fe-00a0c90f57da}
+Provider = %ManufacturerName%
+CatalogFile = MouseLikeTouchPad_SPI.cat
+PnpLockdown=1	
+DriverVer = 05/01/2022,14.30.56.335
+
+[DestinationDirs]
+DefaultDestDir = 12
+PtpUmDrivers_Dir = 12,UMDF
+
+[ControlFlags]
+;ExcludeFromSelect = *
+
+[SourceDisksNames]
+1 = %DiskName%,,,""
+
+[SourceDisksFiles]
+MouseLikeTouchPad_SPI.sys  = 1,,
+hidkmdf.sys = 1
+
+[Manufacturer]
+%ManufacturerName%=MouseStd,NTamd64
+
+[MouseStd.NTamd64]
+%MouseLikeTouchPad_SPI.DeviceDesc%=MouseLikeTouchPad_SPI_Device, Hid\MouseLikeTouchPad_SPI
+;%MouseLikeTouchPad_SPI.DeviceDesc%=MouseLikeTouchPad_SPI_Device, ACPI\PNP0C50
+;%MouseLikeTouchPad_SPI.DeviceDesc%=MouseLikeTouchPad_SPI_Device, SPI\DEVICE
+
+%MouseLikeTouchPad_SPI.DeviceDesc%=MouseLikeTouchPad_SPI_Device, SPI\VID_05ac&PID_0272&MI_02
+%MouseLikeTouchPad_SPI.DeviceDesc%=MouseLikeTouchPad_SPI_Device, SPI\VID_05ac&PID_0273&MI_02
+%MouseLikeTouchPad_SPI.DeviceDesc%=MouseLikeTouchPad_SPI_Device, SPI\VID_05ac&PID_0275&MI_02
+%MouseLikeTouchPad_SPI.DeviceDesc%=MouseLikeTouchPad_SPI_Device, SPI\VID_05ac&PID_0276&MI_02
+%MouseLikeTouchPad_SPI.DeviceDesc%=MouseLikeTouchPad_SPI_Device, SPI\VID_05ac&PID_0277&MI_02
+%MouseLikeTouchPad_SPI.DeviceDesc%=MouseLikeTouchPad_SPI_Device, SPI\VID_05ac&PID_0278&MI_02
+%MouseLikeTouchPad_SPI.DeviceDesc%=MouseLikeTouchPad_SPI_Device, SPI\VID_05ac&PID_0279&MI_02
+
+%MouseLikeTouchPad_SPI.DeviceDesc%=MouseLikeTouchPad_SPI_Device, SPI\VID_05ac&PID_0290&MI_02
+%MouseLikeTouchPad_SPI.DeviceDesc%=MouseLikeTouchPad_SPI_Device, SPI\VID_05ac&PID_0291&MI_02
+
+[MouseLikeTouchPad_SPI_Device.NT]
+CopyFiles=Drivers_Dir
+
+[MouseLikeTouchPad_SPI_Device.NT.HW]
+AddReg=MouseLikeTouchPad_SPI_Device.AddReg, MouseLikeTouchPad_SPI_Device_Configuration.AddReg
+
+
+[MouseLikeTouchPad_SPI_Device.AddReg]
+HKR,,"LowerFilters",0x00010008,"MouseLikeTouchPad_SPI"
+;HKR,,"LowerFilters",0x00010000,"MouseLikeTouchPad_SPI"
+
+[MouseLikeTouchPad_SPI_Device_Configuration.AddReg]
+HKR,,"EnhancedPowerManagementEnabled",0x00010001,1
+HKR,,"DeviceResetNotificationEnabled",0x00010001,1
+HKR,,"LegacyTouchScaling",0x00010001,0
+
+[Drivers_Dir]
+MouseLikeTouchPad_SPI.sys
+
+;-------------- Service installation
+[MouseLikeTouchPad_SPI_Device.NT.Services]
+AddService = MouseLikeTouchPad_SPI,, MouseLikeTouchPad_SPI_Service_Inst
+AddService = mshidkmdf, 0x00000002, mshidkmdf.AddService ;flag 0x2 sets this as the service for the device
+;AddService = mshidkmdf, ,0x000001fa mshidkmdf.AddService ;flag 0x2 sets this as the service for the device
+
+
+[mshidkmdf.AddService]
+ServiceType    = 1                  ; SERVICE_KERNEL_DRIVER
+StartType      = 3                  ; SERVICE_DEMAND_START
+ErrorControl   = 1                  ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %10%\System32\Drivers\mshidkmdf.sys
+
+
+; -------------- MouseLikeTouchPad_SPI driver install sections
+[MouseLikeTouchPad_SPI_Service_Inst]
+DisplayName    = %MouseLikeTouchPad_SPI.SVCDESC%
+ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
+StartType      = 3               ; SERVICE_DEMAND_START
+ErrorControl   = 1                  ; SERVICE_ERROR_NORMAL
+;ErrorControl   = 0                  ; SERVICE_ERROR_IGNORE
+ServiceBinary  = %12%\MouseLikeTouchPad_SPI.sys
+LoadOrderGroup = Extended Base
+
+
+;--- MouseLikeTouchPad_SPI_Device Coinstaller installation ------
+
+[MouseLikeTouchPad_SPI_Device.NT.CoInstallers]
+AddReg=MouseLikeTouchPad_SPI_Device_CoInstaller_AddReg
+CopyFiles=MouseLikeTouchPad_SPI_Device_CoInstaller_CopyFiles
+
+[MouseLikeTouchPad_SPI_Device_CoInstaller_AddReg]
+HKR,,CoInstallers32,0x00010000, "WdfCoInstaller01011.dll,WdfCoInstaller"
+
+[MouseLikeTouchPad_SPI_Device_CoInstaller_CopyFiles]
+
+[MouseLikeTouchPad_SPI_Device.NT.Wdf]
+KmdfService =  MouseLikeTouchPad_SPI, MouseLikeTouchPad_SPI_wdfsect
+
+[MouseLikeTouchPad_SPI_wdfsect]
+KmdfLibraryVersion = 1.15
+
+
+[Strings]
+ManufacturerName = "jxleyo.HRP"
+ClassName="MouseLikeTouchPad_SPI Driver"
+DiskName = "MouseLikeTouchPad_SPI Installation Disk"
+MouseLikeTouchPad_SPI.DeviceDesc = "MouseLikeTouchPad_SPI"
+MouseLikeTouchPad_SPI.SVCDESC = "MouseLikeTouchPad_SPI Service"
