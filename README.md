@@ -7,6 +7,7 @@ MouseLikeTouchPad_SPI Hid Driver for Macbook on windows10仿鼠标式触摸板�
 目前的驱动版本还不完美，双指滚轮操作存在速度突然变很慢的情况，中键因为苹果的触控板硬件原因导致双指紧挨着首次接触触摸板时会有较大几率坐标漂移体验不太好（普通windows笔记本就基本不会漂移所以体验很好）。
 
 本人于2012年左右就已经有这个想法但因为技术原因一直没有条件实现，最近机会成熟了才开始自己开发笔记本电脑的触摸板驱动。
+
 本驱动的基本框架为大部分参考fanxiushu/kmouse_filter-AppleSPITrack-driver的实现https://github.com/fanxiushu/kmouse_filter-AppleSPITrack-driver，
 
 少量参考https://github.com/imbushuo/mac-precision-touchpad的代码（感谢以上作者的开源代码）。
