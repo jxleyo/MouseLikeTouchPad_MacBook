@@ -9,10 +9,8 @@ MouseLikeTouchPad_SPI Hid Driver for Macbook on windows10仿鼠标式触摸板�
 本人于2012年左右就已经有这个想法但因为技术原因一直没有条件实现，最近机会成熟了才开始自己开发笔记本电脑的触摸板驱动。
 
 本驱动的基本框架为大部分参考fanxiushu/kmouse_filter-AppleSPITrack-driver的实现
-https://github.com/fanxiushu/kmouse_filter-AppleSPITrack-driver，
-
-少量参考https://github.com/imbushuo/mac-precision-touchpad
-
+https://github.com/fanxiushu/kmouse_filter-AppleSPITrack-driver
+，少量参考https://github.com/imbushuo/mac-precision-touchpad
 的代码（感谢以上作者的开源代码）。
 
 本驱动程序仅凭我一人之力历经近1年时间艰苦攻坚奋战开发而成并增加大量仿鼠标触摸板逻辑实现代码，仿鼠标式触摸板的操作逻辑实现代码MouseLikeTouchPad_SPI_parse函数则是全部自己完成，获取到手指触摸点数据并完美还原全部手势操作，本驱动替换Apple的AppleSPITrackpad驱动在macbook pro 2017版13寸不带bar的机器测试成功（其他版本估计也是可以的因为代码内没有和触摸板硬件相关的代码），安装后基本能够达到预期的逻辑实现目标，欢迎大家免费下载使用， 驱动因为采用非正式发行的第三方数字签名证书所以windows安全中心会弹出警告威胁选择“允许在设备上”即可不弹出窗口。
