@@ -25,6 +25,6 @@ https://github.com/fanxiushu/kmouse_filter-AppleSPITrack-driver
 
 
 使用操作视频教程网址：
-[https://space.bilibili.com/409976933](https://space.bilibili.com/3546916633709432)
+https://space.bilibili.com/3546916633709432
 https://www.youtube.com/channel/UC3hQyN-2ZL_q7pCKoASAblQ
 
